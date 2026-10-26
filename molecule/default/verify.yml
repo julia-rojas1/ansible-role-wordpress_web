@@ -5,7 +5,7 @@
 - name: Verify
   hosts: wordpress_hosts
   become: true
-  become_method: su
+  become_method: ansible.builtin.su
   gather_facts: true
 
   vars:
