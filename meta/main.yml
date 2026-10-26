@@ -1,15 +1,14 @@
 # SPDX-License-Identifier: MIT
 ---
 galaxy_info:
-  role_name: wordpress_web        # nombre del rol en Galaxy (lowercase, sin espacios)
-  namespace: mikroways            # namespace de Galaxy (organización/usuario)
+  role_name: wordpress_web        # nombre del rol en Galaxy (lowercase, sin espacios)       # namespace de Galaxy (organización/usuario)
   author: Julia Rojas
   description: >
     Instala y configura WordPress con Apache/PHP en Ubuntu 22.04 y Rocky Linux 9.
     Gestiona VirtualHost, wp-config.php y permisos de forma idempotente.
-  company: Mikroways
+  company: Personal
 
-  issue_tracker_url: https://github.com/mikroways/wordpress_web/issues
+  issue_tracker_url: https://github.com/julia-rojas1/ansible-role-wordpress_web/issues
 
   license: MIT
 
