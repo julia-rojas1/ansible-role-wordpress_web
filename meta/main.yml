@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT
+---
+galaxy_info:
+  role_name: wordpress_web        # nombre del rol en Galaxy (lowercase, sin espacios)
+  namespace: mikroways            # namespace de Galaxy (organización/usuario)
+  author: Julia Rojas
+  description: >
+    Instala y configura WordPress con Apache/PHP en Ubuntu 22.04 y Rocky Linux 9.
+    Gestiona VirtualHost, wp-config.php y permisos de forma idempotente.
+  company: Mikroways
+
+  issue_tracker_url: https://github.com/mikroways/wordpress_web/issues
+
+  license: MIT
+
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy   # 22.04
+    - name: EL
+      versions:
+        - "9"     # Rocky Linux 9 / AlmaLinux 9
+
+  galaxy_tags:
+    - wordpress
+    - apache
+    - php
+    - web
+    - cms
+
+dependencies: []

@@ -1,0 +1,11 @@
+---
+# SPDX-License-Identifier: MIT
+# converge.yml — aplica el rol wordpress_web en los contenedores de prueba
+
+- name: Converge
+  hosts: wordpress_hosts
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: wordpress_web

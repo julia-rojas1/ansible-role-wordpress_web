@@ -1,0 +1,18 @@
+---
+# roles/wordpress_web/vars/RedHat.yml
+web_service_name: "httpd"
+web_user: "apache"
+web_group: "apache"
+apache_conf_dir: "/etc/httpd/conf.d"
+
+php_packages:
+  - httpd
+  - php
+  - php-common
+  - php-curl
+  - php-gd
+  - php-mbstring
+  - php-mysqlnd
+  - php-xml
+  - php-zip
+  - tar

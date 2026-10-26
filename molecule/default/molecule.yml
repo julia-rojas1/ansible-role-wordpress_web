@@ -1,0 +1,67 @@
+---
+# SPDX-License-Identifier: MIT
+# Molecule scenario: default
+# Driver: docker   Plataformas: Ubuntu 22.04 (Debian) + Rocky Linux 9 (RedHat)
+
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  # ── Debian / Ubuntu ────────────────────────────────────────────────────────
+  - name: ubuntu-2204
+    # Imagen con systemd habilitado (geerlingguy mantiene imágenes CI listas)
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    command: /lib/systemd/systemd
+    groups:
+      - wordpress_hosts
+
+  # ── RedHat / Rocky Linux ───────────────────────────────────────────────────
+  - name: rocky9
+    image: geerlingguy/docker-rockylinux9-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    command: /usr/sbin/init
+    groups:
+      - wordpress_hosts
+
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      callback_whitelist: profile_tasks
+      roles_path: ${MOLECULE_PROJECT_DIRECTORY}/..
+    ssh_connection:
+      pipelining: true
+  inventory:
+    group_vars:
+      wordpress_hosts:
+        # Variables necesarias para el rol
+        wp_version: "6.5.5"
+        wp_db_name: wordpress_db
+        wp_db_user: wp_user
+        wp_db_password: MoleculeTest123!
+        wp_db_host: "127.0.0.1"
+        wp_install_dir: /var/www/wordpress
+        wp_port: 80
+        wp_server_name: localhost
+
+verifier:
+  name: ansible
+
+lint: |
+  set -e
+  ansible-lint

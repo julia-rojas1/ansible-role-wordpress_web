@@ -1,0 +1,79 @@
+---
+# SPDX-License-Identifier: MIT
+# verify.yml — valida el estado del rol wordpress_web post-convergence
+
+- name: Verify
+  hosts: wordpress_hosts
+  become: true
+  gather_facts: true
+
+  vars:
+    wp_install_dir: /var/www/wordpress
+
+  tasks:
+    # ── 1. Determinar el nombre del servicio según la familia del SO ──────────
+    - name: Establecer nombre del servicio web según OS
+      ansible.builtin.set_fact:
+        web_service_name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+
+    # ── 2. Verificar que el servicio esté activo ──────────────────────────────
+    - name: Obtener estado del servicio web
+      ansible.builtin.service_facts:
+
+    - name: Verificar que el servicio web esté activo (running)
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services[web_service_name ~ '.service'] is defined
+          - ansible_facts.services[web_service_name ~ '.service'].state == 'running'
+        success_msg: "El servicio {{ web_service_name }} está activo (running) ✓"
+        fail_msg: "FALLO: El servicio {{ web_service_name }} NO está activo"
+
+    - name: Verificar que el servicio web esté habilitado (enabled)
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services[web_service_name ~ '.service'].status == 'enabled'
+        success_msg: "El servicio {{ web_service_name }} está habilitado (enabled) ✓"
+        fail_msg: "FALLO: El servicio {{ web_service_name }} NO está habilitado"
+
+    # ── 3. Verificar que wp-config.php existe con permisos correctos ──────────
+    - name: Obtener stat de wp-config.php
+      ansible.builtin.stat:
+        path: "{{ wp_install_dir }}/wp-config.php"
+      register: wp_config_stat
+
+    - name: Verificar que wp-config.php existe con permisos 0640
+      ansible.builtin.assert:
+        that:
+          - wp_config_stat.stat.exists
+          - wp_config_stat.stat.mode == '0640'
+        success_msg: "wp-config.php existe con modo 0640 ✓"
+        fail_msg: "FALLO: wp-config.php no existe o tiene permisos incorrectos (modo: {{ wp_config_stat.stat.mode | default('N/A') }})"
+
+    # ── 4. Verificar que wp-login.php existe ──────────────────────────────────
+    - name: Obtener stat de wp-login.php
+      ansible.builtin.stat:
+        path: "{{ wp_install_dir }}/wp-login.php"
+      register: wp_login_stat
+
+    - name: Verificar que wp-login.php existe
+      ansible.builtin.assert:
+        that:
+          - wp_login_stat.stat.exists
+        success_msg: "wp-login.php existe ✓"
+        fail_msg: "FALLO: wp-login.php no existe en {{ wp_install_dir }}"
+
+  # ── 5. Verificar que el servidor web responde HTTP 200 ────────────────────
+    - name: Realizar petición HTTP a archivo de WordPress
+      ansible.builtin.uri:
+        url: "http://localhost/readme.html"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: http_response
+
+    - name: Verificar respuesta HTTP 200
+      ansible.builtin.assert:
+        that:
+          - http_response.status == 200
+        success_msg: "El servidor web y el VirtualHost responden HTTP 200 correctamente ✓"
+        fail_msg: "FALLO: El servidor web no respondió 200 OK"

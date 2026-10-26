@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT
+
+---
+# roles/wordpress_web/defaults/main.yml
+wp_version: "latest"
+wp_install_dir: "/var/www/wordpress"
+wp_port: 80
+wp_server_name: "_"
+
+# Datos de la Base de Datos
+wp_db_name: "wordpress_db"
+wp_db_user: "wp_user"
+wp_db_password: "Password123!"
+wp_db_host: "localhost"

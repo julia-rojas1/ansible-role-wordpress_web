@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+---
+# roles/wordpress_web/vars/Debian.yml
+web_service_name: "apache2"
+web_user: "www-data"
+web_group: "www-data"
+apache_conf_dir: "/etc/apache2/sites-available"
+
+php_packages:
+  - apache2
+  - libapache2-mod-php
+  - php
+  - php-curl
+  - php-gd
+  - php-mbstring
+  - php-mysqli
+  - php-xml
+  - php-zip
+  - tar

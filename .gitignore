@@ -1,0 +1,9 @@
+# Entornos virtuales y Python
+.venv/
+__pycache__/
+*.pyc
+
+# Archivos temporales de pruebas
+.cache/
+.molecule/
+.pytest_cache/

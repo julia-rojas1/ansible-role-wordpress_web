@@ -1,0 +1,10 @@
+---
+# SPDX-License-Identifier: MIT
+# Colecciones requeridas por el rol wordpress_web
+# Instalar con: ansible-galaxy collection install -r meta/requirements.yml
+
+collections:
+  - name: ansible.posix
+    version: ">=1.5.4"
+  - name: community.general
+    version: ">=8.0.0"

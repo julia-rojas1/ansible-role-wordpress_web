@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: MIT
+---
+
+# 1. Cargar variables dinámicamente según la familia del SO
+- name: Cargar variables según el sistema operativo
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_os_family }}.yml"
+    - "Debian.yml"
+
+# Actualizar la lista de repositorios en Debian/Ubuntu
+- name: Actualizar cache de apt (solo Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+# 2. Instalar Apache y PHP con sus extensiones
+- name: Instalar Apache, PHP y librerias necesarias
+  ansible.builtin.package:
+    name: "{{ php_packages }}"
+    state: present
+
+# 3. En Debian/Ubuntu se requiere habilitar manualmente mod_rewrite
+- name: Habilitar modulo rewrite en Apache (solo Debian/Ubuntu)
+  ansible.builtin.command: a2enmod rewrite
+  args:
+    creates: /etc/apache2/mods-enabled/rewrite.load
+  when: ansible_os_family == "Debian"
+  changed_when: false
+  notify: Reiniciar Webserver
+
+# 4. Asegurar que el servicio Apache esté encendido y habilitado en el arranque
+- name: Iniciar y habilitar servicio web
+  ansible.builtin.service:
+    name: "{{ web_service_name }}"
+    state: started
+    enabled: true
+
+# 5. Crear el directorio web con permisos y dueño correcto
+- name: Crear directorio donde residira WordPress
+  ansible.builtin.file:
+    path: "{{ wp_install_dir }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: "0755"
+
+# 6. Descargar y descomprimir WordPress
+- name: Descargar y descomprimir WordPress
+  ansible.builtin.unarchive:
+    src: "https://wordpress.org/wordpress-{{ wp_version }}.tar.gz"
+    dest: "{{ wp_install_dir }}"
+    remote_src: true
+    extra_opts: ["--strip-components=1"]
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    creates: "{{ wp_install_dir }}/wp-login.php"
+
+# 7. Copiar la configuración wp-config.php generada con Jinja2
+- name: Configurar wp-config.php
+  ansible.builtin.template:
+    src: wp-config.php.j2
+    dest: "{{ wp_install_dir }}/wp-config.php"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: "0640"
+
+# 8. Copiar la configuración del VirtualHost
+- name: Configurar VirtualHost del sitio
+  ansible.builtin.template:
+    src: wordpress.conf.j2
+    dest: "{{ apache_conf_dir }}/wordpress.conf"
+    mode: "0644"
+  notify: Reiniciar Webserver
+
+# 9. En Debian/Ubuntu habilitar el sitio y deshabilitar el default de bienvenida
+- name: Habilitar VirtualHost en Apache (Debian)
+  ansible.builtin.command: a2ensite wordpress.conf
+  args:
+    creates: /etc/apache2/sites-enabled/wordpress.conf
+  when: ansible_os_family == "Debian"
+  changed_when: false
+  notify: Reiniciar Webserver
+
+- name: Deshabilitar VirtualHost por defecto (Debian)
+  ansible.builtin.command: a2dissite 000-default.conf
+  args:
+    removes: /etc/apache2/sites-enabled/000-default.conf
+  when: ansible_os_family == "Debian"
+  changed_when: false
+  notify: Reiniciar Webserver
+
+# 10. Abrir puerto HTTP en el firewall (solo RedHat FUERA de contenedor)
+- name: Recopilar información de servicios activos
+  ansible.builtin.service_facts:
+  when: ansible_os_family == "RedHat"
+
+- name: Permitir trafico HTTP en el firewall (Rocky/CentOS)
+  ansible.posix.firewalld:
+    service: http
+    permanent: true
+    state: enabled
+    immediate: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_facts.services['firewalld.service'] is defined
+    - ansible_facts.services['firewalld.service'].state == 'running'
+
+# 11. Permitir que Apache se conecte a MySQL a traves de SELinux (solo RedHat)
+- name: Permitir que Apache conecte a la base de datos en SELinux
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect_db
+    state: true
+    persistent: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_selinux.status is defined
+    - ansible_selinux.status == "enabled"
