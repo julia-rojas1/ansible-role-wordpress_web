@@ -51,7 +51,7 @@ jobs:
 
       - name: Importar rol a Ansible Galaxy
         run: >
-          ansible-galaxy role import
+          ansible-galaxy role import --no-wait
           --token ${{ secrets.GALAXY_API_KEY }}
           ${{ github.repository_owner }}
           ${{ github.event.repository.name }}
