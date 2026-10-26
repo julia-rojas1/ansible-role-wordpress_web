@@ -2,7 +2,7 @@
 ---
 galaxy_info:
   role_name: wordpress_web
-  namespace: julia_rojas1
+  namespace: julia-rojas1
   author: Julia Rojas
   description: >
     Instala y configura WordPress con Apache/PHP en Ubuntu 22.04 y Rocky Linux 9.
