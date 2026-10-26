@@ -5,6 +5,7 @@
 - name: Converge
   hosts: wordpress_hosts
   become: true
+  become_method: su
   gather_facts: true
 
   tasks:

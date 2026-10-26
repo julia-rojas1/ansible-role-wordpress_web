@@ -49,6 +49,7 @@ provisioner:
   inventory:
     group_vars:
       wordpress_hosts:
+        ansible_become_method: su
         # Variables necesarias para el rol
         wp_version: "6.5.5"
         wp_db_name: wordpress_db
