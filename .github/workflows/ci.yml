@@ -2,9 +2,9 @@ name: Molecule CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   test:
@@ -24,6 +24,9 @@ jobs:
 
       - name: Instalar dependencias del proyecto
         run: poetry install
+
+      - name: Instalar colecciones requeridas de Ansible
+        run: poetry run ansible-galaxy collection install ansible.posix
 
       - name: 1. Ejecutar Ansible Lint
         run: poetry run ansible-lint
