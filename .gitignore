@@ -1,9 +1,23 @@
-# Entornos virtuales y Python
-.venv/
-__pycache__/
-*.pyc
+# Artefactos y empaquetados de Ansible Galaxy
+*.tar.gz
+*.tar
+ansible_collections/
 
-# Archivos temporales de pruebas
+# Entornos virtuales y Poetry
+.venv/
+virtualenvs/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# Archivos temporales de pruebas y Molecule
 .cache/
 .molecule/
-.pytest_cache/
+
+# Archivos de configuración de editores / IDE
+.vscode/
+.idea/
+*.swp

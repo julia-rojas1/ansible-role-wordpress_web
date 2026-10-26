@@ -4,7 +4,7 @@ Rol de Ansible que instala y configura el frontend web de WordPress: Apache, PHP
 
 ## Requisitos
 
-- Ansible >= 2.9
+- `ansible-core` >= 2.15
 - Sistemas soportados: Ubuntu/Debian y EL (Rocky Linux 9 / RedHat / CentOS).
 - Una base de datos MySQL/MariaDB accesible con las credenciales indicadas.
 - Para los tests: Docker, Molecule y `ansible-lint`.
@@ -28,13 +28,14 @@ Variables específicas por familia de SO en `vars/Debian.yml` y `vars/RedHat.yml
 
 ## Qué hace el rol
 
-1. Carga variables según el SO.
-2. Instala Apache, PHP y librerías necesarias (actualiza caché de apt en Debian/Ubuntu).
-3. Habilita `mod_rewrite` (Debian/Ubuntu) e inicia/habilita el servicio web.
-4. Crea el directorio y descarga/descomprime WordPress.
-5. Genera `wp-config.php` y el VirtualHost desde templates.
-6. Debian: habilita el sitio y deshabilita el VirtualHost por defecto.
-7. RedHat: abre HTTP en firewalld y activa el booleano SELinux `httpd_can_network_connect_db`.
+1. Carga dinámicamente las variables correspondientes a la familia del SO (`Debian` o `RedHat`).
+2. Actualiza la caché de paquetes (`apt`) en Debian/Ubuntu e instala Apache, PHP y sus módulos requeridos.
+3. Habilita el módulo `rewrite` de Apache en Debian/Ubuntu.
+4. Asegura que el servicio web (`apache2` o `httpd`) esté iniciado y habilitado en el arranque.
+5. Crea el directorio de destino y descarga/descomprime la versión solicitada de WordPress.
+6. Genera el archivo `wp-config.php` (con permisos `0640`) y el VirtualHost desde plantillas Jinja2.
+7. En Debian/Ubuntu: activa el nuevo VirtualHost y desactiva el sitio por defecto (`000-default.conf`).
+8. En RedHat/Rocky (en entornos no-Docker): habilita el puerto HTTP en `firewalld` y el booleano SELinux `httpd_can_network_connect_db`.
 
 ## Dependencias
 
@@ -61,14 +62,30 @@ El escenario `default` usa el driver Docker con dos plataformas con systemd:
 - `ubuntu-2204` (`geerlingguy/docker-ubuntu2204-ansible`)
 - `rocky9` (`geerlingguy/docker-rockylinux9-ansible`)
 
-Archivos: `molecule/default/{molecule,converge,verify}.yml`.
+Estructura de pruebas en molecule/default/:
+- molecule.yml: Configuración de plataformas y driver.  
+- converge.yml: Ejecución del rol sobre los contenedores.  
+- verify.yml: Aserciones de servicios activos, permisos de archivos (0640) y respuesta HTTP 200.  
 
+
+### Comandos de prueba
+Si utilizas *Poetry*:
 ```bash
-pip install molecule molecule-plugins[docker] ansible-lint
-molecule test          # ciclo completo
-molecule converge      # solo aplicar el rol
-molecule verify        # solo verificaciones
-molecule destroy       # limpiar contenedores
+poetry run molecule test        # Ciclo completo de testing (convergencia, idempotencia y verificación)
+poetry run molecule converge    # Solo aplica el rol (útil para desarrollo)
+poetry run molecule verify      # Ejecuta las aserciones de verificación
+poetry run molecule destroy     # Limpia los contenedores de prueba
+```
+Si utilizas *pip*
+```bash
+pip install molecule "molecule-plugins[docker]" ansible-lint
+molecule test
+```
+
+## Calidad del código
+El rol pasa todos los controles de calidad exigidos por ansible-lint con perfil de producción:
+```bash
+poetry run ansible-lint
 ```
 
 ## Licencia

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ansible-role-wordpress-web"
+version = "1.0.0"
+description = "Rol de Ansible para desplegar frontend de WordPress con Apache y PHP"
+authors = ["Julia Rojas"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+ansible-core = ">=2.16,<2.19"
+
+[tool.poetry.group.dev.dependencies]
+molecule = ">=24.0.0"
+molecule-plugins = {extras = ["docker"], version = ">=23.5.0"}
+ansible-lint = ">=24.0.0"
+docker = ">=7.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

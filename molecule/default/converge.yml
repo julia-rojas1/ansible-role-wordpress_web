@@ -7,5 +7,7 @@
   become: true
   gather_facts: true
 
-  roles:
-    - role: wordpress_web
+  tasks:
+    - name: Aplicar el rol bajo prueba
+      ansible.builtin.include_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
