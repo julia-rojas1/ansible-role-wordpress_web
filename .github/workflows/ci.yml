@@ -1,8 +1,9 @@
-name: Molecule CI
+name: Molecule CI & Galaxy Release
 
 on:
   push:
     branches: ["main"]
+    tags: ["v*.*.*"]
   pull_request:
     branches: ["main"]
 
@@ -33,3 +34,24 @@ jobs:
 
       - name: 2. Ejecutar Molecule Test (Ubuntu & Rocky)
         run: poetry run molecule test
+
+  release:
+    name: Publicar en Ansible Galaxy
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar ansible-core
+        run: pip install ansible-core
+
+      - name: Importar rol a Ansible Galaxy
+        run: >
+          ansible-galaxy role import
+          --token ${{ secrets.GALAXY_API_KEY }}
+          ${{ github.repository_owner }}
+          ${{ github.event.repository.name }}
